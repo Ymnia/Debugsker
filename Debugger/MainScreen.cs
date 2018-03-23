@@ -1,4 +1,7 @@
 ﻿// ReSharper disable UnusedVariable
+using Interfaces;
+using Interfaces.Environments;
+using Interfaces.Options;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -6,9 +9,6 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
-using Interfaces;
-using Interfaces.Environments;
-using Interfaces.Options;
 
 namespace Debugger
 {
@@ -34,10 +34,10 @@ namespace Debugger
     {
       InitializeComponent();
       LoadConfiguration();
-      LoadEnvironments();
       LoadOptions();
-      LoadPlugins();
       LoadAdditionalBlocks();
+      LoadEnvironments();
+      LoadPlugins();
     }
 
     private void LoadConfiguration()
@@ -58,16 +58,29 @@ namespace Debugger
         foreach (var envDet in env.Connections)
         {
           var item = new ToolStripMenuItem(envDet.ToString()) { CheckOnClick = true };
-          item.CheckedChanged += CheckEnvironment;
-          item.CheckedChanged += (o, i) => { Config.CurrentSelectedConnection = item.Checked ? envDet : null; };
+          item.CheckedChanged += (o, i) => { if(item.Checked) Config.CurrentSelectedConnection = envDet; };
           environmentsToolStripMenuItem.DropDownItems.Add(item);
-          var informationBlock = new Panel { Parent = flowLayoutPanel1, BackColor = _scheme[0], Height = _informationBlockSize, Width = _informationBlockSize };
-          var label = new Label { Parent = informationBlock, Text = envDet.ConnectionName, TextAlign = ContentAlignment.MiddleCenter, Dock = DockStyle.Fill, Font = new Font(informationBlock.Font, FontStyle.Bold), ForeColor = Color.Wheat };
-          var panelN = new Panel { Parent = informationBlock, Height = 10, BackColor = _scheme[0], Dock = DockStyle.Top };
-          var panelE = new Panel { Parent = informationBlock, Width = 10, BackColor = _scheme[0], Dock = DockStyle.Right };
-          var panelS = new Panel { Parent = informationBlock, Height = 10, BackColor = _scheme[0], Dock = DockStyle.Bottom };
-          var panelW = new Panel { Parent = informationBlock, Width = 10, BackColor = _scheme[0], Dock = DockStyle.Left };
+          var informationBlock = new Panel { Parent = flowLayoutPanel1, Height = _informationBlockSize, Width = _informationBlockSize, BackColor = _scheme[0]};
+          var panelN = new Panel { Parent = informationBlock, Height = 10, Dock = DockStyle.Top };
+          var panelE = new Panel { Parent = informationBlock, Width = 10, Dock = DockStyle.Right };
+          var panelS = new Panel { Parent = informationBlock, Height = 10, Dock = DockStyle.Bottom };
+          var panelW = new Panel { Parent = informationBlock, Width = 10, Dock = DockStyle.Left };
+          try
+          {
+            var center = string.IsNullOrEmpty(envDet.ManagementUrl)
+              ? (Control) new Label {TextAlign = ContentAlignment.MiddleCenter, Font = new Font(informationBlock.Font, FontStyle.Bold)}
+              : new Button();
+            if(!string.IsNullOrEmpty(envDet.ManagementUrl))
+              center.Click += (a, b) => System.Diagnostics.Process.Start(envDet.ManagementUrl);
+            center.Parent = informationBlock;
+            center.Text = envDet.ConnectionName;
+            center.Dock = DockStyle.Fill;
+            center.ForeColor = Color.Wheat;
+            center.BackColor = _scheme[0];
+          }
+          catch{ }
           Config.ConnectionChanged += c => { informationBlock.BackColor = c?.ConnectionName == envDet.ConnectionName ? _scheme[1] : _scheme[0]; };
+          Config.ConnectionChanged += c => { item.Checked = c?.ConnectionName == envDet.ConnectionName; };
         }
       }
     }
@@ -220,7 +233,7 @@ namespace Debugger
     {
       if (!(sender is ToolStripMenuItem)) return;
       var item = (ToolStripMenuItem)sender;
-      foreach (var i in optionsToolStripMenuItem.DropDownItems)
+      foreach (var i in environmentsToolStripMenuItem.DropDownItems)
       {
         if (i == sender) continue;
         ((ToolStripMenuItem)i).Checked = false;
@@ -232,7 +245,7 @@ namespace Debugger
       _pluginLocation = Environment.CurrentDirectory;
 
       var settingLocation = ConfigurationManager.AppSettings[AppSettingKeys.PluginLocation.ToString()]?.Trim();
-      if (string.IsNullOrEmpty(settingLocation) || Directory.Exists(settingLocation))
+      if (string.IsNullOrEmpty(settingLocation) || !Directory.Exists(settingLocation))
         return;
 
       _pluginLocation = settingLocation;

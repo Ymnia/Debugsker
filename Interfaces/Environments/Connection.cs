@@ -10,6 +10,8 @@
     public string APIKey;
     public string APIPublicKey;
     public string BaseURL;
+    public string ManagementUrl;
+
     public override string ToString()
     {
       return ConnectionName;
