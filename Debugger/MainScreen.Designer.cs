@@ -30,6 +30,7 @@
       System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainScreen));
       this.ControlStrip = new System.Windows.Forms.MenuStrip();
       this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.reloadPluginsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.environmentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -56,15 +57,23 @@
       // fileToolStripMenuItem
       // 
       this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.reloadPluginsToolStripMenuItem,
             this.exitToolStripMenuItem});
       this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
       this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
       this.fileToolStripMenuItem.Text = "File";
       // 
+      // reloadPluginsToolStripMenuItem
+      // 
+      this.reloadPluginsToolStripMenuItem.Name = "reloadPluginsToolStripMenuItem";
+      this.reloadPluginsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+      this.reloadPluginsToolStripMenuItem.Text = "Reload plugins";
+      this.reloadPluginsToolStripMenuItem.Click += new System.EventHandler(this.ReloadPluginsToolStripMenuItem_Click);
+      // 
       // exitToolStripMenuItem
       // 
       this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-      this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
+      this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.exitToolStripMenuItem.Text = "Exit";
       this.exitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
       // 
@@ -145,5 +154,6 @@
     private System.Windows.Forms.TabControl Tabs;
     private System.Windows.Forms.TabPage FrontPage;
     private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
+    private System.Windows.Forms.ToolStripMenuItem reloadPluginsToolStripMenuItem;
   }
 }

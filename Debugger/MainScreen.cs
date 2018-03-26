@@ -1,4 +1,5 @@
 ﻿// ReSharper disable UnusedVariable
+// ReSharper disable EmptyGeneralCatchClause
 using Interfaces;
 using Interfaces.Environments;
 using Interfaces.Options;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 
@@ -34,16 +36,16 @@ namespace Debugger
     {
       InitializeComponent();
       LoadConfiguration();
-      LoadOptions();
-      LoadAdditionalBlocks();
-      LoadEnvironments();
-      LoadPlugins();
     }
 
     private void LoadConfiguration()
     {
       SetPluginLocation();
       SetBlockDimension();
+      LoadOptions();
+      LoadAdditionalBlocks();
+      LoadEnvironments();
+      LoadPlugins();
     }
 
     private void LoadEnvironments()
@@ -58,7 +60,7 @@ namespace Debugger
         foreach (var envDet in env.Connections)
         {
           var item = new ToolStripMenuItem(envDet.ToString()) { CheckOnClick = true };
-          item.CheckedChanged += (o, i) => { if(item.Checked) Config.CurrentSelectedConnection = envDet; };
+          item.CheckedChanged += (o, i) => {if(item.Checked) Config.CurrentSelectedConnection = ((ToolStripMenuItem)o).Text==envDet.ConnectionName ? envDet : null; };
           environmentsToolStripMenuItem.DropDownItems.Add(item);
           var informationBlock = new Panel { Parent = flowLayoutPanel1, Height = _informationBlockSize, Width = _informationBlockSize, BackColor = _scheme[0]};
           var panelN = new Panel { Parent = informationBlock, Height = 10, Dock = DockStyle.Top };
@@ -229,17 +231,6 @@ namespace Debugger
       return instances;
     }
 
-    private void CheckEnvironment(object sender, EventArgs e)
-    {
-      if (!(sender is ToolStripMenuItem)) return;
-      var item = (ToolStripMenuItem)sender;
-      foreach (var i in environmentsToolStripMenuItem.DropDownItems)
-      {
-        if (i == sender) continue;
-        ((ToolStripMenuItem)i).Checked = false;
-      }
-    }
-
     private void SetPluginLocation()
     {
       _pluginLocation = Environment.CurrentDirectory;
@@ -259,6 +250,32 @@ namespace Debugger
 
       if (_informationBlockSize < 90)
         _informationBlockSize = 175;
+    }
+
+    private void ReloadPluginsToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      RemoveAllItemsFromControl(flowLayoutPanel1);
+      RemoveAllItemsFromControl(Tabs, Tabs.GetControl(0));
+      RemoveAllItemsFromToolstrip(optionsToolStripMenuItem);
+      RemoveAllItemsFromToolstrip(environmentsToolStripMenuItem);
+      Config.CurrentSelectedConnection = null;
+      LoadConfiguration();
+    }
+
+    private static void RemoveAllItemsFromControl(Control parent, Control exclude = null)
+    {
+      var controls = new List<Control>(parent.Controls.Cast<Control>());
+      parent.Controls.Clear();
+      if (exclude != null)
+        parent.Controls.Add(exclude);
+      controls.Where(c => c.Name != exclude?.Name).ToList().ForEach(c => c.Dispose());
+    }
+
+    private static void RemoveAllItemsFromToolstrip(ToolStripDropDownItem parent)
+    {
+      var controls = new List<ToolStripItem>(parent.DropDownItems.Cast<ToolStripItem>());
+      parent.DropDownItems.Clear();
+      controls.ForEach(c => c.Dispose());
     }
   }
 }
