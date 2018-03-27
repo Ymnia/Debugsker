@@ -27,7 +27,8 @@ namespace Debugger
       Color.FromArgb(00, 90, 00),
       Color.FromArgb(44, 120, 44),
       Color.FromArgb(63, 150, 63),
-      Color.FromArgb(74, 180, 74)
+      Color.FromArgb(74, 180, 74),
+      Color.Wheat,
     };
 
     #endregion
@@ -77,7 +78,7 @@ namespace Debugger
             center.Parent = informationBlock;
             center.Text = envDet.ConnectionName;
             center.Dock = DockStyle.Fill;
-            center.ForeColor = Color.Wheat;
+            center.ForeColor = _scheme[5];
             center.BackColor = _scheme[0];
           }
           catch{ }
