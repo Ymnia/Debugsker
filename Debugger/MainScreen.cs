@@ -29,6 +29,7 @@ namespace Debugger
       Color.FromArgb(63, 150, 63),
       Color.FromArgb(74, 180, 74),
       Color.Wheat,
+      Color.Black,
     };
 
     #endregion
@@ -41,12 +42,31 @@ namespace Debugger
 
     private void LoadConfiguration()
     {
+      LoadColorScheme();
       SetPluginLocation();
       SetBlockDimension();
       LoadOptions();
       LoadAdditionalBlocks();
       LoadEnvironments();
       LoadPlugins();
+    }
+
+    private void LoadColorScheme()
+    {
+      var colorScheme = ConfigurationManager.AppSettings[AppSettingKeys.ColorScheme.ToString()]?.Trim();
+      if(string.IsNullOrEmpty(colorScheme)) return;
+      var colors = colorScheme.Split(',').Select(c => c.Split('.')).ToList();
+      if(!colors.Any())return;
+      try
+      {
+        for (var i = 0; i < colors.Count; i++)
+          if (colors[i].Length == 3 && colors[i].All(c => int.TryParse(c, out var _)))
+            _scheme[i] = Color.FromArgb(int.Parse(colors[i][0]), int.Parse(colors[i][1]), int.Parse(colors[i][2]));
+      }
+      catch
+      {
+      }
+      flowLayoutPanel1.BackColor = _scheme[6];
     }
 
     private void LoadEnvironments()
@@ -152,7 +172,7 @@ namespace Debugger
               }
           }
 
-          var informationBlock = new Panel { Parent = flowLayoutPanel1, BackColor = panelColor, Height = _informationBlockSize, Width = _informationBlockSize };
+          var informationBlock = new Panel { Parent = flowLayoutPanel1, BackColor = panelColor,ForeColor = _scheme[5], Height = _informationBlockSize, Width = _informationBlockSize };
           var title = new Label { Text = optDet.Name, Parent = informationBlock, TextAlign = ContentAlignment.MiddleCenter, Dock = DockStyle.Top };
           var content = new Label { Text = optDet.DefaultValue.ToString(), Parent = informationBlock, TextAlign = ContentAlignment.MiddleCenter, Dock = DockStyle.Fill };
           Config.OptionChanged += (s, t) =>

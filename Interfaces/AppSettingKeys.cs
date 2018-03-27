@@ -5,5 +5,6 @@
     PluginLocation,
     PluginSearchPattern,
     InformationBlockSize,
+    ColorScheme,
   }
 }
