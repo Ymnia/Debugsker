@@ -83,18 +83,17 @@ namespace Debugger
           var item = new ToolStripMenuItem(envDet.ToString()) { CheckOnClick = true };
           item.CheckedChanged += (o, i) => {if(item.Checked) Config.CurrentSelectedConnection = ((ToolStripMenuItem)o).Text==envDet.ConnectionName ? envDet : null; };
           environmentsToolStripMenuItem.DropDownItems.Add(item);
-          var informationBlock = new Panel { Parent = flowLayoutPanel1, Height = _informationBlockSize, Width = _informationBlockSize, BackColor = _scheme[0]};
-          var panelN = new Panel { Parent = informationBlock, Height = 10, Dock = DockStyle.Top };
-          var panelE = new Panel { Parent = informationBlock, Width = 10, Dock = DockStyle.Right };
-          var panelS = new Panel { Parent = informationBlock, Height = 10, Dock = DockStyle.Bottom };
-          var panelW = new Panel { Parent = informationBlock, Width = 10, Dock = DockStyle.Left };
+          var informationBlock = new Panel { Parent = flowLayoutPanel1, Height = _informationBlockSize, Width = _informationBlockSize, BackColor = _scheme[0] };
           try
           {
             var center = string.IsNullOrEmpty(envDet.ManagementUrl)
               ? (Control) new Label {TextAlign = ContentAlignment.MiddleCenter, Font = new Font(informationBlock.Font, FontStyle.Bold)}
-              : new Button();
-            if(!string.IsNullOrEmpty(envDet.ManagementUrl))
+              : new Button{Cursor = Cursors.Hand, FlatStyle = FlatStyle.Flat };
+            if (!string.IsNullOrEmpty(envDet.ManagementUrl))
+            {
               center.Click += (a, b) => System.Diagnostics.Process.Start(envDet.ManagementUrl);
+              ((Button) center).FlatAppearance.BorderSize = 0;
+            }
             center.Parent = informationBlock;
             center.Text = envDet.ConnectionName;
             center.Dock = DockStyle.Fill;
@@ -132,7 +131,8 @@ namespace Debugger
                 Config.SetBooleanOption(optDet.Name, optDet.DefaultValue);
                 item.CheckOnClick = true;
                 item.Checked = Config.GetBooleanOption(optDet.Name) ?? false;
-                item.CheckedChanged += (o, i) => Config.SetBooleanOption(optDet.Name, ((ToolStripMenuItem)o).Checked);
+                item.CheckedChanged += (o, i) => { if (((ToolStripMenuItem) o).Text == optDet.Name) Config.SetBooleanOption(optDet.Name, item.Checked); };
+                Config.OptionChanged += (s, t) => { if (s == optDet.Name) item.Checked = Config.GetBooleanOption(optDet.Name) ?? (bool)optDet.DefaultValue; };
                 break;
               }
             case OptionItemType.String:
@@ -175,15 +175,20 @@ namespace Debugger
           var informationBlock = new Panel { Parent = flowLayoutPanel1, BackColor = panelColor,ForeColor = _scheme[5], Height = _informationBlockSize, Width = _informationBlockSize };
           var title = new Label { Text = optDet.Name, Parent = informationBlock, TextAlign = ContentAlignment.MiddleCenter, Dock = DockStyle.Top };
           var content = new Label { Text = optDet.DefaultValue.ToString(), Parent = informationBlock, TextAlign = ContentAlignment.MiddleCenter, Dock = DockStyle.Fill };
+          if (optDet.ItemType == OptionItemType.Bool)
+          {
+            content.Cursor = Cursors.Hand;
+            content.Click += (o,i) => Config.SetBooleanOption(optDet.Name, !Config.GetBooleanOption(optDet.Name));
+          }
           Config.OptionChanged += (s, t) =>
           {
-            if (s != optDet.Name) return;
-            content.Text =
-            (t == typeof(bool) ? Config.GetBooleanOption(optDet.Name)?.ToString()
-            : t == typeof(int) ? Config.GetIntegerOption(optDet.Name)?.ToString()
-            : t == typeof(string) ? Config.GetStringOption(optDet.Name)
-            : null)
-            ?? string.Empty;
+            if (s == optDet.Name)
+              content.Text =
+              (t == typeof(bool) ? Config.GetBooleanOption(optDet.Name)?.ToString()
+              : t == typeof(int) ? Config.GetIntegerOption(optDet.Name)?.ToString()
+              : t == typeof(string) ? Config.GetStringOption(optDet.Name)
+              : null)
+              ?? string.Empty;
           };
           optionsToolStripMenuItem.DropDownItems.Add(item);
         }
